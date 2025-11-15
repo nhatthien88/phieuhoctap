@@ -1,0 +1,1302 @@
+<!doctype html>
+<html lang="vi">
+
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giải Mã Dòng Chảy Dân Chủ 1936-1939</title>
+    <script src="/_sdk/element_sdk.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        .station-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .station-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .puzzle-piece {
+            background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 100%);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .puzzle-piece::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
+            border-radius: 15px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .puzzle-piece:hover::before {
+            opacity: 1;
+        }
+
+        .puzzle-piece:hover {
+            transform: scale(1.05) rotate(2deg);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .puzzle-piece.selected {
+            border-color: #10b981;
+            background: linear-gradient(45deg, #10b981 0%, #34d399 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .puzzle-piece.wrong {
+            border-color: #ef4444;
+            background: linear-gradient(45deg, #ef4444 0%, #f87171 100%);
+            color: white;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .timeline-container {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 25px;
+            border: 3px solid #f59e0b;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="%23ffffff" opacity="0.3"/><circle cx="80" cy="40" r="1.5" fill="%23ffffff" opacity="0.2"/><circle cx="40" cy="80" r="1" fill="%23ffffff" opacity="0.4"/></svg>');
+            pointer-events: none;
+        }
+
+        .timeline-track {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            min-height: 80px;
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .timeline-track.drag-over {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .flip-card {
+            background: transparent;
+            width: 100%;
+            height: 100px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            border: 2px solid #c7d2fe;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px;
+        }
+
+        .flip-card-front {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+            border-color: #f59e0b;
+        }
+
+        .flip-card-back {
+            background: linear-gradient(135deg, #e8f4fd 0%, #f3e8ff 100%);
+            color: #4c1d95;
+            border-color: #8b5cf6;
+            transform: rotateY(180deg);
+        }
+
+        .flip-card:hover .flip-card-inner {
+            transform: scale(1.05);
+        }
+
+        .flip-card.flipped:hover .flip-card-inner {
+            transform: rotateY(180deg) scale(1.05);
+        }
+
+        .card-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .flip-hint {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .card-icon {
+            font-size: 16px;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+
+        .card-item {
+            background: linear-gradient(135deg, #e8f4fd 0%, #f3e8ff 100%);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #c7d2fe;
+            position: relative;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            color: #4c1d95;
+        }
+
+        .card-item::after {
+            content: '🌸';
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        .card-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            border-color: #8b5cf6;
+        }
+
+        .card-item.selected {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            transform: scale(1.05);
+        }
+
+        .card-item.dongduong {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        }
+
+        .card-item.nghitruong {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        }
+
+        .card-item.baochi {
+            border-color: #8b5cf6;
+            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+        }
+
+        .card-item.grouped {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .timeline-flow {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 20px;
+            border: 3px solid;
+            padding: 20px;
+            margin: 10px 0;
+        }
+
+        .timeline-flow.dongduong {
+            border-color: #10b981;
+        }
+
+        .timeline-flow.nghitruong {
+            border-color: #f59e0b;
+        }
+
+        .timeline-flow.baochi {
+            border-color: #8b5cf6;
+        }
+
+        .timeline-step {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .card-tray {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            border-radius: 20px;
+            border: 3px solid #6366f1;
+            position: relative;
+        }
+
+        .card-tray::before {
+            content: '🌸 Khay thẻ sự kiện 🌸';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .ancient-scroll {
+            background: linear-gradient(135deg, #f7f3e9 0%, #e8dcc0 100%);
+            border: 3px solid #8b4513;
+            border-radius: 15px;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(139, 69, 19, 0.1);
+        }
+
+        .ancient-scroll::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M10,10 Q50,5 90,10 Q95,50 90,90 Q50,95 10,90 Q5,50 10,10" fill="none" stroke="%238b4513" stroke-width="2" opacity="0.3"/></svg>');
+            border-radius: 20px;
+            pointer-events: none;
+        }
+
+        .error-word {
+            background: transparent;
+            padding: 2px 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: inline-block;
+            margin: 0 2px;
+        }
+
+        .error-word:hover {
+            background: linear-gradient(45deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .error-word.found {
+            background: linear-gradient(45deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .puzzle-canvas {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
+            border-radius: 20px;
+            position: relative;
+            min-height: 300px;
+            border: 4px solid #fbbf24;
+        }
+
+        .puzzle-canvas::before {
+            content: '🌸 BỨC TRANH Ý NGHĨA 🌸';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: #1e3a8a;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .puzzle-slot {
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            min-height: 80px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .puzzle-slot.filled {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.2);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .puzzle-slot.drag-over {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.2);
+            transform: scale(1.05);
+        }
+
+        .meaning-piece {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            border-radius: 12px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            border: 2px solid #059669;
+            color: white;
+            font-weight: 600;
+        }
+
+        .meaning-piece.wrong {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            border-color: #dc2626;
+        }
+
+        .meaning-piece:hover {
+            transform: scale(1.05) rotate(1deg);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .meaning-piece.dragging {
+            opacity: 0.8;
+            transform: rotate(3deg) scale(1.1);
+            cursor: grabbing;
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 8px;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .celebration {
+            animation: celebrate 0.8s ease-in-out;
+        }
+
+        @keyframes celebrate {
+            0% {
+                transform: scale(1) rotate(0deg);
+            }
+
+            25% {
+                transform: scale(1.1) rotate(2deg);
+            }
+
+            50% {
+                transform: scale(1.05) rotate(-1deg);
+            }
+
+            75% {
+                transform: scale(1.1) rotate(1deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .leaf-icon {
+            color: #10b981;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .floating-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .shuffle-button {
+            background: linear-gradient(45deg, #8b5cf6, #a78bfa);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .shuffle-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+        }
+    </style>
+    <style>
+        @view-transition {
+            navigation: auto;
+        }
+    </style>
+    <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+</head>
+
+<body class="min-h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 font-sans">
+    <header class="text-center py-8 px-4">
+        <div class="max-w-4xl mx-auto">
+            <h1 id="main-title"
+                class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-4 floating-animation">
+                🌸 GIẢI MÃ DÒNG CHẢY DÂN CHỦ 1936 - 1939</h1>
+            <p id="subtitle" class="text-lg text-gray-600 max-w-2xl mx-auto">Khám phá hành trình đấu tranh dân chủ qua 4
+                trạm tương tác đặc sắc</p>
+            <div class="mt-6 bg-white rounded-full p-2 inline-block shadow-lg">
+                <div class="flex items-center space-x-2"><span class="text-sm font-medium text-gray-600">🌺 Tiến
+                        độ:</span>
+                    <div class="w-48 bg-gray-200 rounded-full h-3">
+                        <div id="progress" class="progress-bar w-0"></div>
+                    </div><span id="progress-text" class="text-sm font-medium text-purple-600">0/4</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="max-w-6xl mx-auto px-4 pb-8"><!-- Station 1: Nguyên nhân -->
+        <section id="station1" class="station-card p-8 mb-8 text-white">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4"><span
+                        class="text-2xl leaf-icon">🌱</span>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold">TRẠM 1: NGUYÊN NHÂN</h2>
+                    <p class="text-blue-100">"Chọn mảnh ghép đúng"</p>
+                </div><button id="shuffle-station1" class="shuffle-button ml-auto"> 🔄 Xáo trộn </button>
+            </div>
+            <p class="mb-6 text-lg">🌷 Từ 6 mảnh ghép dưới đây, hãy chọn đúng 4 nguyên nhân dẫn đến phong trào
+                1936-1939:</p>
+            <div id="puzzle-container1" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Puzzle pieces will be inserted here -->
+            </div>
+            <div id="station1-result" class="hidden bg-white bg-opacity-20 rounded-lg p-4">
+                <p class="text-center font-medium"></p>
+            </div>
+        </section><!-- Station 2: Diễn biến -->
+        <section id="station2" class="station-card p-8 mb-8 text-white">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4"><span
+                        class="text-2xl leaf-icon">🌺</span>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold">TRẠM 2: DIỄN BIẾN</h2>
+                    <p class="text-blue-100">"Nhấn xoay mảnh - giải mã 3 dòng chảy"</p>
+                </div><button id="shuffle-station2" class="shuffle-button ml-auto"> 🔄 Xáo trộn thẻ </button>
+            </div>
+            <p class="mb-6 text-lg">🌺 Nhấn thẻ để xoay sang mặt đúng. Khi đủ 3 thẻ cùng nhóm được xoay đúng → tạo dòng
+                chảy sự kiện:</p>
+            <div class="mb-6">
+                <div class="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-9 gap-3" id="card-grid">
+                    <!-- 9 cards will be inserted here -->
+                </div>
+            </div><!-- Timeline display area -->
+            <div id="timeline-display" class="space-y-4"><!-- Completed timelines will appear here -->
+            </div>
+            <div id="station2-result" class="hidden bg-white bg-opacity-20 rounded-lg p-4 mt-6">
+                <p class="text-center font-medium"></p>
+            </div>
+        </section><!-- Station 3: Kết quả -->
+        <section id="station3" class="station-card p-8 mb-8 text-white">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4"><span
+                        class="text-2xl leaf-icon">🌻</span>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold">TRẠM 3: KẾT QUẢ</h2>
+                    <p class="text-blue-100">"Bắt lỗi - sửa lỗi - biến hóa câu văn"</p>
+                </div>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold mb-4 flex items-center"><span class="text-2xl mr-3">🌻</span> Ba bước
+                    thực hiện:</h3>
+                <ol class="list-decimal list-inside space-y-2 text-lg ml-8">
+                    <li><strong>BẮT LỖI:</strong> Click chọn 3 cụm từ SAI trong đoạn văn</li>
+                    <li><strong>SỬA LỖI:</strong> Gõ cụm từ đúng vào 3 ô sửa lỗi</li>
+                    <li><strong>BIẾN HÓA:</strong> Viết lại câu mới hoàn chỉnh theo cách của bạn</li>
+                </ol>
+            </div>
+            <div class="ancient-scroll p-6 mb-6">
+                <div class="text-center mb-4"><span class="text-2xl">🌸</span>
+                    <h4 class="text-lg font-bold text-amber-800 inline-block ml-2">Đoạn văn cổ điển</h4><span
+                        class="text-2xl ml-2">🌸</span>
+                </div>
+                <p class="text-lg text-gray-800 leading-relaxed text-center">"Phong trào dân chủ 1936–1939 chủ yếu diễn
+                    ra <span class="error-word" data-error="bí mật">bí mật</span>, lực lượng tham gia <span
+                        class="error-word" data-error="rất ít">rất ít</span>, và <span class="error-word"
+                        data-error="không mang lại kết quả thiết thực">không mang lại kết quả thiết thực</span> cho đời
+                    sống nhân dân."</p>
+            </div>
+            <div class="space-y-6">
+                <div id="correction-boxes" class="hidden">
+                    <h4 class="text-lg font-semibold mb-4 flex items-center"><span class="text-2xl mr-3">🌺</span> Sửa
+                        lỗi (3 ô):</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div><label class="block text-sm font-medium mb-2">Thay cho "bí mật":</label> <input type="text"
+                                id="fix1"
+                                class="w-full p-3 rounded-lg text-gray-800 border-2 border-white focus:border-yellow-400 focus:outline-none"
+                                placeholder="Nhập từ đúng...">
+                        </div>
+                        <div><label class="block text-sm font-medium mb-2">Thay cho "rất ít":</label> <input type="text"
+                                id="fix2"
+                                class="w-full p-3 rounded-lg text-gray-800 border-2 border-white focus:border-yellow-400 focus:outline-none"
+                                placeholder="Nhập từ đúng...">
+                        </div>
+                        <div><label class="block text-sm font-medium mb-2">Thay cho "không mang lại...":</label> <input
+                                type="text" id="fix3"
+                                class="w-full p-3 rounded-lg text-gray-800 border-2 border-white focus:border-yellow-400 focus:outline-none"
+                                placeholder="Nhập từ đúng...">
+                        </div>
+                    </div>
+                </div>
+                <div id="rewrite-section" class="hidden">
+                    <h4 class="text-lg font-semibold mb-4 flex items-center"><span class="text-2xl mr-3">🌻</span> Biến
+                        hóa - Viết câu mới:</h4><textarea id="new-sentence"
+                        class="w-full p-4 rounded-lg text-gray-800 border-2 border-white focus:border-yellow-400 focus:outline-none h-32"
+                        placeholder="Viết lại câu hoàn chỉnh về kết quả phong trào theo cách của bạn..."></textarea>
+                    <p class="text-sm text-blue-200 mt-2">🌷 Gợi ý: Sử dụng các từ khóa như "công khai", "quần chúng",
+                        "kết quả thiết thực"</p>
+                </div>
+                <div id="correct-sentence-display" class="hidden">
+                    <h4 class="text-lg font-semibold mb-4 flex items-center"><span class="text-2xl mr-3">✨</span> Câu
+                        đúng hoàn chỉnh:</h4>
+                    <div class="bg-green-100 border-2 border-green-400 rounded-lg p-4">
+                        <p class="text-lg text-green-800 leading-relaxed text-center font-medium">"Phong trào dân chủ
+                            1936–1939 chủ yếu diễn ra <strong class="text-green-600">công khai</strong>, lực lượng tham
+                            gia <strong class="text-green-600">đông đảo</strong>, và <strong class="text-green-600">mang
+                                lại nhiều kết quả thiết thực</strong> cho đời sống nhân dân."</p>
+                    </div>
+                    <div class="mt-4 bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+                        <h5 class="font-semibold text-blue-800 mb-2 flex items-center"><span
+                                class="text-xl mr-2">📝</span> Câu của bạn:</h5>
+                        <p id="user-sentence-display" class="text-blue-700 italic"></p>
+                    </div>
+                </div><button id="check-station3"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center">
+                    <span class="text-xl mr-2">🌺</span> Kiểm tra đáp án </button>
+            </div>
+            <div id="station3-result" class="hidden bg-white bg-opacity-20 rounded-lg p-4 mt-6">
+                <p class="text-center font-medium"></p>
+            </div>
+        </section><!-- Station 4: Ý nghĩa -->
+        <section id="station4" class="station-card p-8 mb-8 text-white">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4"><span
+                        class="text-2xl leaf-icon">🌸</span>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold">TRẠM 4: Ý NGHĨA</h2>
+                    <p class="text-blue-100">"Ghép 3 mảnh - hoàn thành bức tranh ý nghĩa"</p>
+                </div><button id="shuffle-station4" class="shuffle-button ml-auto"> 🔄 Xáo trộn </button>
+            </div>
+            <p class="mb-6 text-lg">🌸 Kéo đúng 3 mảnh vào bức tranh để hoàn thành Ý nghĩa phong trào 1936-1939:</p>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><!-- Puzzle canvas -->
+                <div class="lg:col-span-2">
+                    <div class="puzzle-canvas p-8 pt-12">
+                        <div class="grid grid-cols-1 gap-6 h-full">
+                            <div class="puzzle-slot p-4 flex items-center justify-center text-white font-medium"
+                                data-slot="1"><span class="text-center">🌺 Kéo mảnh ghép vào đây 🌺</span>
+                            </div>
+                            <div class="puzzle-slot p-4 flex items-center justify-center text-white font-medium"
+                                data-slot="2"><span class="text-center">🌻 Kéo mảnh ghép vào đây 🌻</span>
+                            </div>
+                            <div class="puzzle-slot p-4 flex items-center justify-center text-white font-medium"
+                                data-slot="3"><span class="text-center">🌷 Kéo mảnh ghép vào đây 🌷</span>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- Meaning pieces -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white bg-opacity-15 rounded-2xl p-6">
+                        <h4 class="text-lg font-semibold mb-4 text-center flex items-center justify-center"><span
+                                class="text-2xl mr-2">🌸</span> Mảnh ghép ý nghĩa</h4>
+                        <div id="meaning-pieces" class="space-y-3"><!-- Meaning pieces will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="station4-result" class="hidden bg-white bg-opacity-20 rounded-lg p-4 mt-6">
+                <p class="text-center font-medium"></p>
+            </div>
+        </section><!-- Final celebration -->
+        <div id="final-celebration" class="hidden text-center py-12">
+            <div class="text-6xl mb-4">
+                🎉
+            </div>
+            <h2 class="text-3xl font-bold text-purple-600 mb-4">Chúc mừng bạn!</h2>
+            <p class="text-xl text-gray-600 mb-6">Bạn đã hoàn thành xuất sắc hành trình khám phá dòng chảy dân chủ
+                1936-1939!</p>
+            <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-2xl max-w-2xl mx-auto">
+                <h3 class="text-xl font-bold mb-4 flex items-center justify-center"><span
+                        class="text-2xl mr-3">🌟</span> Bạn đã thành thạo:</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                    <div class="space-y-2">
+                        <div class="flex items-center"><span class="text-xl mr-2">🌱</span> <span>4 nguyên nhân
+                                chính</span>
+                        </div>
+                        <div class="flex items-center"><span class="text-xl mr-2">🌿</span> <span>3 hình thức đấu
+                                tranh</span>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center"><span class="text-xl mr-2">🍃</span> <span>Kết quả và tác
+                                động</span>
+                        </div>
+                        <div class="flex items-center"><span class="text-xl mr-2">🏛️</span> <span>Ý nghĩa lịch
+                                sử</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        let draggedElement = null;
+        // Configuration object for Element SDK
+        const defaultConfig = {
+            main_title: "🏛️ GIẢI MÃ DÒNG CHẢY DÂN CHỦ 1936 - 1939",
+            subtitle: "Khám phá hành trình đấu tranh dân chủ qua 4 trạm tương tác đặc sắc",
+            primary_color: "#667eea",
+            secondary_color: "#764ba2",
+            accent_color: "#10b981",
+            text_color: "#374151",
+            background_color: "#f8fafc",
+            font_family: "Inter",
+            font_size: 16
+        };
+
+        // Game state
+        let completedStations = 0;
+        let station1Selected = [];
+        let station3ErrorsFound = [];
+        let station4FilledSlots = 0;
+        // Data arrays
+        const puzzlePieces = [
+            { text: "🌍 Mặt trận Nhân dân Pháp lên cầm quyền, chống phát xít", correct: true },
+            { text: "🔓 Thực dân Pháp nới lỏng cai trị", correct: false },
+            { text: "😢 Đời sống nhân dân vô cùng cực khổ", correct: true },
+            { text: "⚔️ Nhật xâm lược Đông Dương", correct: false },
+            { text: "🚩 Đảng Cộng sản Đông Dương chuyển hướng đấu tranh dân chủ", correct: true },
+            { text: "⚡ Mâu thuẫn dân tộc – giai cấp gay gắt", correct: true }
+        ];
+
+        const timelineCards = [
+            { text: "Thu thập dân nguyện", group: "dongduong", type: "purpose", wrong: "Tổ chức bạo động" },
+            { text: "Chữ ký – dân nguyện", group: "dongduong", type: "form", wrong: "Biểu tình vũ trang" },
+            { text: "Quần chúng hưởng ứng mạnh", group: "dongduong", type: "result", wrong: "Không thu hút được quần chúng" },
+            { text: "Mở rộng lực lượng, tố cáo thực dân", group: "nghitruong", type: "purpose", wrong: "Hoạt động bí mật" },
+            { text: "Ứng cử – diễn thuyết", group: "nghitruong", type: "form", wrong: "Đấu tranh ngầm" },
+            { text: "Tác động mạnh đến dư luận", group: "nghitruong", type: "result", wrong: "Không tác động đến dư luận" },
+            { text: "Tuyên truyền dân sinh – dân chủ", group: "baochi", type: "purpose", wrong: "Tuyên truyền chống Pháp" },
+            { text: "Báo chí công khai", group: "baochi", type: "form", wrong: "Tuyên truyền bí mật" },
+            { text: "Lan tỏa phong trào", group: "baochi", type: "result", wrong: "Phong trào bị đàn áp hoàn toàn" }
+        ];
+
+        const groupNames = {
+            dongduong: "🌿 ĐÔNG DƯƠNG ĐẠI HỘI",
+            nghitruong: "🌼 ĐẤU TRANH NGHỊ TRƯỜNG",
+            baochi: "💜 ĐẤU TRANH BÁO CHÍ"
+        };
+
+        const typeNames = {
+            purpose: "Mục đích",
+            form: "Hình thức",
+            result: "Kết quả"
+        };
+
+        const meaningPieces = [
+            { text: "🏛️ Nhượng bộ dân sinh, dân chủ", correct: true },
+            { text: "🎭 Diễn tập cho Cách mạng Tháng Tám", correct: true },
+            { text: "📚 Bài học kinh nghiệm đấu tranh", correct: true },
+            { text: "💥 Làm tan rã bộ máy cai trị của thực dân Pháp", correct: false },
+            { text: "⚔️ Phong trào mang tính vũ trang và bạo lực", correct: false },
+            { text: "❌ Không tạo ảnh hưởng gì đến Cách mạng Tháng Tám", correct: false }
+        ];
+
+        // Initialize Element SDK
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig: defaultConfig,
+                onConfigChange: async (config) => {
+                    // Update title and subtitle
+                    document.getElementById('main-title').textContent = config.main_title || defaultConfig.main_title;
+                    document.getElementById('subtitle').textContent = config.subtitle || defaultConfig.subtitle;
+
+                    // Update colors
+                    const primaryColor = config.primary_color || defaultConfig.primary_color;
+                    const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+                    const accentColor = config.accent_color || defaultConfig.accent_color;
+                    const textColor = config.text_color || defaultConfig.text_color;
+                    const backgroundColor = config.background_color || defaultConfig.background_color;
+
+                    // Apply colors to elements
+                    document.body.style.backgroundColor = backgroundColor;
+                    document.body.style.color = textColor;
+
+                    // Update station cards
+                    const stationCards = document.querySelectorAll('.station-card');
+                    stationCards.forEach(card => {
+                        card.style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+                    });
+
+                    // Update progress bar
+                    const progressBar = document.getElementById('progress');
+                    if (progressBar) {
+                        progressBar.style.background = `linear-gradient(90deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+                    }
+
+                    // Update font
+                    const customFont = config.font_family || defaultConfig.font_family;
+                    const baseFontStack = 'system-ui, -apple-system, sans-serif';
+                    document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
+
+                    // Update font size
+                    const baseSize = config.font_size || defaultConfig.font_size;
+                    document.body.style.fontSize = `${baseSize}px`;
+
+                    // Scale headings proportionally
+                    const mainTitle = document.getElementById('main-title');
+                    if (mainTitle) {
+                        mainTitle.style.fontSize = `${baseSize * 2.5}px`;
+                    }
+
+                    const subtitle = document.getElementById('subtitle');
+                    if (subtitle) {
+                        subtitle.style.fontSize = `${baseSize * 1.125}px`;
+                    }
+
+                    const h2Elements = document.querySelectorAll('h2');
+                    h2Elements.forEach(h2 => {
+                        h2.style.fontSize = `${baseSize * 1.5}px`;
+                    });
+
+                    const h3Elements = document.querySelectorAll('h3');
+                    h3Elements.forEach(h3 => {
+                        h3.style.fontSize = `${baseSize * 1.25}px`;
+                    });
+                },
+                mapToCapabilities: (config) => ({
+                    recolorables: [
+                        {
+                            get: () => config.primary_color || defaultConfig.primary_color,
+                            set: (value) => {
+                                if (window.elementSdk) {
+                                    window.elementSdk.setConfig({ primary_color: value });
+                                }
+                            }
+                        },
+                        {
+                            get: () => config.secondary_color || defaultConfig.secondary_color,
+                            set: (value) => {
+                                if (window.elementSdk) {
+                                    window.elementSdk.setConfig({ secondary_color: value });
+                                }
+                            }
+                        },
+                        {
+                            get: () => config.accent_color || defaultConfig.accent_color,
+                            set: (value) => {
+                                if (window.elementSdk) {
+                                    window.elementSdk.setConfig({ accent_color: value });
+                                }
+                            }
+                        },
+                        {
+                            get: () => config.text_color || defaultConfig.text_color,
+                            set: (value) => {
+                                if (window.elementSdk) {
+                                    window.elementSdk.setConfig({ text_color: value });
+                                }
+                            }
+                        },
+                        {
+                            get: () => config.background_color || defaultConfig.background_color,
+                            set: (value) => {
+                                if (window.elementSdk) {
+                                    window.elementSdk.setConfig({ background_color: value });
+                                }
+                            }
+                        }
+                    ],
+                    borderables: [],
+                    fontEditable: {
+                        get: () => config.font_family || defaultConfig.font_family,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ font_family: value });
+                            }
+                        }
+                    },
+                    fontSizeable: {
+                        get: () => config.font_size || defaultConfig.font_size,
+                        set: (value) => {
+                            if (window.elementSdk) {
+                                window.elementSdk.setConfig({ font_size: value });
+                            }
+                        }
+                    }
+                }),
+                mapToEditPanelValues: (config) => new Map([
+                    ["main_title", config.main_title || defaultConfig.main_title],
+                    ["subtitle", config.subtitle || defaultConfig.subtitle]
+                ])
+            });
+        }
+
+        // Utility functions
+        function shuffle(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function updateProgress() {
+            const progress = document.getElementById('progress');
+            const progressText = document.getElementById('progress-text');
+            const percentage = (completedStations / 4) * 100;
+
+            progress.style.width = `${percentage}%`;
+            progressText.textContent = `${completedStations}/4`;
+
+            if (completedStations === 4) {
+                document.getElementById('final-celebration').classList.remove('hidden');
+                document.getElementById('final-celebration').classList.add('celebration');
+            }
+        }
+
+        // Initialize Station 1
+        function initStation1() {
+            const container = document.getElementById('puzzle-container1');
+            const shuffledPieces = shuffle(puzzlePieces);
+
+            container.innerHTML = '';
+            shuffledPieces.forEach((piece, index) => {
+                const div = document.createElement('div');
+                div.className = 'puzzle-piece p-4 text-center font-medium text-gray-800';
+                div.textContent = piece.text;
+                div.dataset.correct = piece.correct;
+                div.addEventListener('click', handlePuzzlePieceClick);
+                container.appendChild(div);
+            });
+        }
+
+        function handlePuzzlePieceClick() {
+            const isCorrect = this.dataset.correct === 'true';
+
+            if (this.classList.contains('selected') || this.classList.contains('wrong')) {
+                // Deselect
+                this.classList.remove('selected', 'wrong');
+                const index = station1Selected.indexOf(this);
+                if (index > -1) {
+                    station1Selected.splice(index, 1);
+                }
+            } else {
+                // Select
+                if (station1Selected.length < 4) {
+                    station1Selected.push(this);
+                    this.classList.add(isCorrect ? 'selected' : 'wrong');
+                }
+            }
+
+            // Check if completed
+            if (station1Selected.length === 4) {
+                const correctCount = station1Selected.filter(piece => piece.dataset.correct === 'true').length;
+                const result = document.getElementById('station1-result');
+                if (correctCount === 4) {
+                    result.innerHTML = '<p class="text-center font-medium">🎉 Xuất sắc! Bạn đã chọn đúng 4 nguyên nhân chính dẫn đến phong trào dân chủ 1936-1939!</p>';
+                    result.classList.remove('hidden');
+                    if (completedStations === 0) {
+                        completedStations = 1;
+                        updateProgress();
+                    }
+                } else {
+                    result.innerHTML = '<p class="text-center font-medium">❌ Chưa chính xác. Hãy thử lại! Cần chọn đúng 4 nguyên nhân.</p>';
+                    result.classList.remove('hidden');
+                    // Reset after 2 seconds
+                    setTimeout(() => {
+                        station1Selected.forEach(piece => {
+                            piece.classList.remove('selected', 'wrong');
+                        });
+                        station1Selected = [];
+                        result.classList.add('hidden');
+                    }, 2000);
+                }
+            }
+        }
+
+        // Initialize Station 2
+        function initStation2() {
+            const grid = document.getElementById('card-grid');
+            const shuffledCards = shuffle(timelineCards);
+
+            grid.innerHTML = '';
+            shuffledCards.forEach((card, index) => {
+                const div = document.createElement('div');
+                div.className = 'card-item flip-card';
+                div.dataset.group = card.group;
+                div.dataset.type = card.type;
+                div.dataset.index = index;
+                div.dataset.flipped = 'false';
+
+                // Create flip card structure
+                div.innerHTML = `
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="card-content">${card.wrong || 'Mặt nhiễu'}</div>
+                            <div class="flip-hint">🔄 Nhấn để xoay</div>
+                        </div>
+                        <div class="flip-card-back">
+                            <div class="card-content">${card.text}</div>
+                            <div class="card-icon">🌿</div>
+                        </div>
+                    </div>
+                `;
+
+                div.addEventListener('click', handleCardFlip);
+                grid.appendChild(div);
+            });
+
+            // Reset state
+            completedGroups = [];
+            flippedCards = [];
+            document.getElementById('timeline-display').innerHTML = '';
+        }
+
+        let completedGroups = [];
+        let flippedCards = [];
+
+        function handleCardFlip() {
+            if (this.classList.contains('grouped')) return;
+
+            const isFlipped = this.dataset.flipped === 'true';
+
+            if (!isFlipped) {
+                // Flip to correct side
+                this.classList.add('flipped');
+                this.dataset.flipped = 'true';
+                flippedCards.push(this);
+
+                // Check if group is complete
+                setTimeout(() => checkGroupComplete(), 300);
+            } else {
+                // Flip back to wrong side
+                this.classList.remove('flipped');
+                this.dataset.flipped = 'false';
+                flippedCards = flippedCards.filter(card => card !== this);
+            }
+        }
+
+        function checkGroupComplete() {
+            // Check each group
+            ['dongduong', 'nghitruong', 'baochi'].forEach(group => {
+                if (completedGroups.includes(group)) return;
+
+                const groupCards = flippedCards.filter(card => card.dataset.group === group);
+                if (groupCards.length === 3) {
+                    // Group complete - create timeline
+                    groupCards.forEach(card => {
+                        card.classList.add('grouped', group);
+                        card.style.pointerEvents = 'none';
+                    });
+
+                    createTimeline(group);
+                    completedGroups.push(group);
+
+                    if (completedGroups.length === 3) {
+                        const result = document.getElementById('station2-result');
+                        result.innerHTML = '<p class="text-center font-medium">🎉 Tuyệt vời! Bạn đã giải mã thành công 3 dòng chảy sự kiện!</p>';
+                        result.classList.remove('hidden');
+                        if (completedStations === 1) {
+                            completedStations = 2;
+                            updateProgress();
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTimeline(group) {
+            const display = document.getElementById('timeline-display');
+            const groupCards = Array.from(document.querySelectorAll(`[data-group="${group}"]`));
+
+            // Sort cards by type order
+            const typeOrder = ['purpose', 'form', 'result'];
+            groupCards.sort((a, b) => {
+                return typeOrder.indexOf(a.dataset.type) - typeOrder.indexOf(b.dataset.type);
+            });
+
+            const timeline = document.createElement('div');
+            timeline.className = `timeline-flow ${group}`;
+            timeline.innerHTML = `
+                <h3 class="text-xl font-bold mb-4 text-center text-gray-800">
+                    ${groupNames[group]}
+                </h3>
+                <div class="grid grid-cols-3 gap-4">
+                    ${groupCards.map(card => `
+                        <div class="timeline-step">
+                            <div class="text-sm font-medium text-gray-600 mb-2">${typeNames[card.dataset.type]}</div>
+                            <div class="text-sm">${card.textContent}</div>
+                            </div>
+                    `).join('')}
+                </div>
+            `;
+
+            display.appendChild(timeline);
+            timeline.classList.add('celebration');
+        }
+
+
+
+        // Initialize Station 3
+        function initStation3() {
+            const errorWords = document.querySelectorAll('.error-word');
+            errorWords.forEach(word => {
+                word.addEventListener('click', handleErrorWordClick);
+            });
+        }
+
+        function handleErrorWordClick() {
+            if (this.classList.contains('found')) {
+                this.classList.remove('found');
+                const index = station3ErrorsFound.indexOf(this.dataset.error);
+                if (index > -1) {
+                    station3ErrorsFound.splice(index, 1);
+                }
+            } else {
+                this.classList.add('found');
+                station3ErrorsFound.push(this.dataset.error);
+            }
+
+            // Show correction boxes when 3 errors found
+            if (station3ErrorsFound.length === 3) {
+                document.getElementById('correction-boxes').classList.remove('hidden');
+            } else {
+                document.getElementById('correction-boxes').classList.add('hidden');
+                document.getElementById('rewrite-section').classList.add('hidden');
+            }
+        }
+
+        // Initialize Station 4
+        function initStation4() {
+            const container = document.getElementById('meaning-pieces');
+            const shuffledPieces = shuffle(meaningPieces);
+
+            container.innerHTML = '';
+            shuffledPieces.forEach(piece => {
+                const div = document.createElement('div');
+                // All pieces have the same appearance initially - no color distinction
+                div.className = 'meaning-piece p-3 text-center text-sm';
+                div.textContent = piece.text;
+                div.dataset.correct = piece.correct;
+                div.draggable = true;
+                div.addEventListener('dragstart', handleMeaningDragStart);
+                div.addEventListener('dragend', handleMeaningDragEnd);
+                container.appendChild(div);
+            });
+        }
+
+        function handleMeaningDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleMeaningDragEnd() {
+            this.classList.remove('dragging');
+            draggedElement = null;
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function () {
+            initStation1();
+            initStation2();
+            initStation3();
+            initStation4();
+
+            // Shuffle buttons
+            document.getElementById('shuffle-station1').addEventListener('click', initStation1);
+            document.getElementById('shuffle-station2').addEventListener('click', initStation2);
+            document.getElementById('shuffle-station4').addEventListener('click', initStation4);
+
+
+
+            // Station 3 check button
+            document.getElementById('check-station3').addEventListener('click', function () {
+                if (station3ErrorsFound.length === 3) {
+                    document.getElementById('rewrite-section').classList.remove('hidden');
+                }
+
+                const fix1 = document.getElementById('fix1').value.trim().toLowerCase();
+                const fix2 = document.getElementById('fix2').value.trim().toLowerCase();
+                const fix3 = document.getElementById('fix3').value.trim().toLowerCase();
+                const newSentence = document.getElementById('new-sentence').value.trim();
+                const result = document.getElementById('station3-result');
+
+                const correctAnswers = [
+                    ['công khai', 'hợp pháp'],
+                    ['đông đảo', 'quần chúng', 'nhiều'],
+                    ['mang lại', 'kết quả', 'thiết thực', 'dân sinh', 'dân chủ']
+                ];
+
+                const fix1Valid = correctAnswers[0].some(answer => fix1.includes(answer));
+                const fix2Valid = correctAnswers[1].some(answer => fix2.includes(answer));
+                const fix3Valid = correctAnswers[2].some(answer => fix3.includes(answer));
+
+                const sentenceKeywords = ['công khai', 'quần chúng', 'kết quả'];
+                const sentenceValid = sentenceKeywords.some(keyword => newSentence.toLowerCase().includes(keyword));
+
+                if (station3ErrorsFound.length === 3 && fix1Valid && fix2Valid && fix3Valid && sentenceValid && newSentence) {
+                    result.innerHTML = '<p class="text-center font-medium">🎉 Hoàn hảo! Bạn đã tìm đúng lỗi sai, sửa chính xác và viết lại câu rất hay!</p>';
+                    result.classList.remove('hidden');
+
+                    // Show correct sentence and user's sentence
+                    document.getElementById('correct-sentence-display').classList.remove('hidden');
+                    document.getElementById('user-sentence-display').textContent = `"${newSentence}"`;
+
+                    if (completedStations === 2) {
+                        completedStations = 3;
+                        updateProgress();
+                    }
+                } else {
+                    let message = '❌ ';
+                    if (station3ErrorsFound.length !== 3) message += 'Cần tìm đúng 3 lỗi sai. ';
+                    if (!fix1Valid || !fix2Valid || !fix3Valid) message += 'Cần sửa lỗi chính xác hơn. ';
+                    if (!sentenceValid || !newSentence) message += 'Cần viết câu mới có từ khóa phù hợp. ';
+                    result.innerHTML = `<p class="text-center font-medium">${message}</p>`;
+                    result.classList.remove('hidden');
+                }
+            });
+
+            // Station 4 drag and drop
+            document.querySelectorAll('.puzzle-slot').forEach(slot => {
+                slot.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    this.classList.add('drag-over');
+                });
+
+                slot.addEventListener('dragleave', function () {
+                    this.classList.remove('drag-over');
+                });
+
+                slot.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    this.classList.remove('drag-over');
+
+                    if (draggedElement) {
+                        const isCorrect = draggedElement.dataset.correct === 'true';
+
+                        if (isCorrect) {
+                            // Correct piece
+                            this.innerHTML = '';
+                            this.appendChild(draggedElement);
+                            this.classList.add('filled');
+                            draggedElement.style.margin = '0';
+                            draggedElement.style.width = '100%';
+                            station4FilledSlots++;
+
+                            // Check if completed
+                            if (station4FilledSlots === 3) {
+                                const result = document.getElementById('station4-result');
+                                result.innerHTML = '<p class="text-center font-medium">🎉 Xuất sắc! Bạn đã hoàn thành bức tranh ý nghĩa phong trào dân chủ 1936-1939!</p>';
+                                result.classList.remove('hidden');
+
+                                // Add glow effect to canvas
+                                document.querySelector('.puzzle-canvas').style.boxShadow = '0 0 30px rgba(251, 191, 36, 0.8)';
+
+                                if (completedStations === 3) {
+                                    completedStations = 4;
+                                    updateProgress();
+                                }
+                            }
+                        } else {
+                            // Wrong piece - animate rejection
+                            draggedElement.style.transform = 'translateX(-20px)';
+                            draggedElement.style.opacity = '0.5';
+                            setTimeout(() => {
+                                draggedElement.style.transform = '';
+                                draggedElement.style.opacity = '';
+                            }, 500);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'99eda93f84270425',t:'MTc2MzE5ODMwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+</body>
+
+</html>
