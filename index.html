@@ -315,6 +315,10 @@
             font-weight: 600;
         }
 
+        .ancient-scroll p {
+            cursor: pointer;
+        }
+
         .ancient-scroll {
             background: linear-gradient(135deg, #f7f3e9 0%, #e8dcc0 100%);
             border: 3px solid #8b4513;
@@ -337,26 +341,24 @@
 
         .error-word {
             background: transparent;
-            padding: 2px 6px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            padding: 2px 4px;
+            border-radius: 6px;
             border: 2px solid transparent;
-            display: inline-block;
-            margin: 0 2px;
+            transition: all 0.2s ease;
+            display: inline;
         }
 
         .error-word:hover {
-            background: linear-gradient(45deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-            transform: scale(1.1);
+            background: transparent;
+            transform: none;
         }
 
         .error-word.found {
             background: linear-gradient(45deg, #ef4444 0%, #dc2626 100%);
             color: white;
             text-decoration: line-through;
-            opacity: 0.7;
+            opacity: 0.9;
+            border-color: #b91c1c;
         }
 
         .puzzle-canvas {
@@ -555,8 +557,12 @@
                     <p class="text-blue-100">"Nhấn xoay mảnh - giải mã 3 dòng chảy"</p>
                 </div><button id="shuffle-station2" class="shuffle-button ml-auto"> 🔄 Xáo trộn thẻ </button>
             </div>
-            <p class="mb-6 text-lg">🌺 Nhấn thẻ để xoay sang mặt đúng. Khi đủ 3 thẻ cùng nhóm được xoay đúng → tạo dòng
-                chảy sự kiện:</p>
+            <p class="mb-6 text-lg">🌺 Nhấn thẻ để xoay sang mặt đúng. Khi đủ 3 thẻ cùng nhóm được xoay đúng sẽ hiện đáp
+                án chính xác: </p>
+            <h3 id="station2-topic" class="text-center text-xl font-bold text-yellow-300 mb-4 drop-shadow">
+                Đấu Tranh Hội Nghị – Đấu Tranh Báo Chí – Đấu Tranh Nghị Trường
+            </h3>
+
             <div class="mb-6">
                 <div class="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-9 gap-3" id="card-grid">
                     <!-- 9 cards will be inserted here -->
@@ -1032,42 +1038,107 @@
 
             // Reset state
             completedGroups = [];
-            flippedCards = [];
+            currentGroup = null;
+            currentGroupCards = [];
             document.getElementById('timeline-display').innerHTML = '';
         }
 
         let completedGroups = [];
-        let flippedCards = [];
+        let currentGroup = null;
+        let currentGroupCards = [];
+
 
         function handleCardFlip() {
+            // Nếu thẻ đã thuộc nhóm hoàn thành thì không cho bấm nữa
             if (this.classList.contains('grouped')) return;
 
             const isFlipped = this.dataset.flipped === 'true';
+            const cardGroup = this.dataset.group;
 
+            // ====== TRƯỜNG HỢP ĐANG ÚP → LẬT LÊN ======
             if (!isFlipped) {
-                // Flip to correct side
+
+                // Nếu chưa có nhóm nào được chọn → nhóm của thẻ này trở thành nhóm hiện tại
+                if (!currentGroup) {
+                    currentGroup = cardGroup;
+                    currentGroupCards = [];
+                }
+
+                // Nếu thẻ này KHÔNG cùng nhóm với nhóm đang chơi → coi là lật sai nhóm
+                if (cardGroup !== currentGroup) {
+                    // Lật lên rồi tự úp lại cho người chơi thấy mình chọn sai
+                    this.classList.add('flipped');
+                    this.dataset.flipped = 'true';
+
+                    setTimeout(() => {
+                        this.classList.remove('flipped');
+                        this.dataset.flipped = 'false';
+                    }, 500);
+
+                    return;
+                }
+
+                // Thẻ đúng nhóm → cho lật và lưu lại
                 this.classList.add('flipped');
                 this.dataset.flipped = 'true';
-                flippedCards.push(this);
+                currentGroupCards.push(this);
 
-                // Check if group is complete
-                setTimeout(() => checkGroupComplete(), 300);
+                // Nếu đã đủ 3 thẻ cùng nhóm → hoàn thành 1 dòng chảy
+                if (currentGroupCards.length === 3) {
+                    currentGroupCards.forEach(card => {
+                        card.classList.add('grouped', card.dataset.group);
+                        card.style.pointerEvents = 'none';
+                    });
+
+                    createTimeline(currentGroup);
+                    completedGroups.push(currentGroup);
+
+                    // Nếu cả 3 nhóm đã xong → hiện thông báo + tăng tiến độ
+                    if (completedGroups.length === 3) {
+                        const result = document.getElementById('station2-result');
+                        result.innerHTML =
+                            '<p class="text-center font-medium">🎉 Tuyệt vời! Bạn đã giải mã thành công 3 dòng chảy sự kiện!</p>';
+                        result.classList.remove('hidden');
+
+                        if (completedStations === 1) {
+                            completedStations = 2;
+                            updateProgress();
+                        }
+                    }
+
+                    // Reset để người chơi bắt đầu nhóm mới
+                    currentGroup = null;
+                    currentGroupCards = [];
+                }
+
+                // ====== TRƯỜNG HỢP ĐANG MỞ → ÚP LẠI THỦ CÔNG ======
             } else {
-                // Flip back to wrong side
+                // Úp lại nếu chưa bị khóa nhóm
                 this.classList.remove('flipped');
                 this.dataset.flipped = 'false';
-                flippedCards = flippedCards.filter(card => card !== this);
+
+                if (currentGroup && cardGroup === currentGroup) {
+                    currentGroupCards = currentGroupCards.filter(card => card !== this);
+                    if (currentGroupCards.length === 0) {
+                        currentGroup = null;
+                    }
+                }
             }
         }
 
-        function checkGroupComplete() {
-            // Check each group
-            ['dongduong', 'nghitruong', 'baochi'].forEach(group => {
+        /* function checkGroupCompleteStrict() {
+            const groups = ["dongduong", "nghitruong", "baochi"];
+
+            groups.forEach(group => {
                 if (completedGroups.includes(group)) return;
 
+                // Lấy thẻ đúng của nhóm này
                 const groupCards = flippedCards.filter(card => card.dataset.group === group);
+
+                // Phải đủ 3 thẻ đúng
                 if (groupCards.length === 3) {
-                    // Group complete - create timeline
+
+                    // Khóa các thẻ này lại
                     groupCards.forEach(card => {
                         card.classList.add('grouped', group);
                         card.style.pointerEvents = 'none';
@@ -1078,7 +1149,8 @@
 
                     if (completedGroups.length === 3) {
                         const result = document.getElementById('station2-result');
-                        result.innerHTML = '<p class="text-center font-medium">🎉 Tuyệt vời! Bạn đã giải mã thành công 3 dòng chảy sự kiện!</p>';
+                        result.innerHTML =
+                            '<p class="text-center font-medium">🎉 Tuyệt vời! Bạn đã giải mã thành công 3 dòng chảy sự kiện!</p>';
                         result.classList.remove('hidden');
                         if (completedStations === 1) {
                             completedStations = 2;
@@ -1087,7 +1159,37 @@
                     }
                 }
             });
-        }
+        } */
+
+        /* 
+                function checkGroupComplete() {
+                    // Check each group
+                    ['dongduong', 'nghitruong', 'baochi'].forEach(group => {
+                        if (completedGroups.includes(group)) return;
+        
+                        const groupCards = flippedCards.filter(card => card.dataset.group === group);
+                        if (groupCards.length === 3) {
+                            // Group complete - create timeline
+                            groupCards.forEach(card => {
+                                card.classList.add('grouped', group);
+                                card.style.pointerEvents = 'none';
+                            });
+        
+                            createTimeline(group);
+                            completedGroups.push(group);
+        
+                            if (completedGroups.length === 3) {
+                                const result = document.getElementById('station2-result');
+                                result.innerHTML = '<p class="text-center font-medium">🎉 Tuyệt vời! Bạn đã giải mã thành công 3 dòng chảy sự kiện!</p>';
+                                result.classList.remove('hidden');
+                                if (completedStations === 1) {
+                                    completedStations = 2;
+                                    updateProgress();
+                                }
+                            }
+                        }
+                    });
+                } */
 
         function createTimeline(group) {
             const display = document.getElementById('timeline-display');
@@ -1129,26 +1231,44 @@
             });
         }
 
-        function handleErrorWordClick() {
-            if (this.classList.contains('found')) {
+        function handleErrorWordClick(e) {
+            e.stopPropagation();
+
+            const errorKey = this.dataset.error;
+            const isFound = this.classList.contains('found');
+
+            if (isFound) {
+                // Bỏ chọn
                 this.classList.remove('found');
-                const index = station3ErrorsFound.indexOf(this.dataset.error);
+                const index = station3ErrorsFound.indexOf(errorKey);
                 if (index > -1) {
                     station3ErrorsFound.splice(index, 1);
                 }
             } else {
+                // Đang chưa chọn
+
+                // Nếu đã chọn đủ 3 lỗi rồi thì KHÔNG cho chọn thêm
+                if (station3ErrorsFound.length >= 3) {
+                    // có thể thêm hiệu ứng rung nhẹ để báo cho người chơi
+                    this.classList.add('shake-temp');
+                    setTimeout(() => this.classList.remove('shake-temp'), 300);
+                    return;
+                }
+
                 this.classList.add('found');
-                station3ErrorsFound.push(this.dataset.error);
+                station3ErrorsFound.push(errorKey);
             }
 
-            // Show correction boxes when 3 errors found
+            // Hiện / ẩn khung sửa lỗi
             if (station3ErrorsFound.length === 3) {
                 document.getElementById('correction-boxes').classList.remove('hidden');
             } else {
                 document.getElementById('correction-boxes').classList.add('hidden');
                 document.getElementById('rewrite-section').classList.add('hidden');
+                document.getElementById('station3-result').classList.add('hidden');
             }
         }
+
 
         // Initialize Station 4
         function initStation4() {
@@ -1218,12 +1338,12 @@
 
                 const sentenceKeywords = ['công khai', 'quần chúng', 'kết quả'];
                 const sentenceValid = sentenceKeywords.some(keyword => newSentence.toLowerCase().includes(keyword));
-
                 if (station3ErrorsFound.length === 3 && fix1Valid && fix2Valid && fix3Valid && sentenceValid && newSentence) {
+
                     result.innerHTML = '<p class="text-center font-medium">🎉 Hoàn hảo! Bạn đã tìm đúng lỗi sai, sửa chính xác và viết lại câu rất hay!</p>';
                     result.classList.remove('hidden');
 
-                    // Show correct sentence and user's sentence
+                    // Hiện câu đúng + câu người dùng
                     document.getElementById('correct-sentence-display').classList.remove('hidden');
                     document.getElementById('user-sentence-display').textContent = `"${newSentence}"`;
 
@@ -1231,14 +1351,23 @@
                         completedStations = 3;
                         updateProgress();
                     }
+
                 } else {
+
+                    // ⭐ RESET KẾT QUẢ CŨ KHI TRẢ LỜI SAI
+                    document.getElementById('correct-sentence-display').classList.add('hidden');
+                    document.getElementById('user-sentence-display').textContent = '';
+
+                    // Thông báo lỗi
                     let message = '❌ ';
                     if (station3ErrorsFound.length !== 3) message += 'Cần tìm đúng 3 lỗi sai. ';
                     if (!fix1Valid || !fix2Valid || !fix3Valid) message += 'Cần sửa lỗi chính xác hơn. ';
                     if (!sentenceValid || !newSentence) message += 'Cần viết câu mới có từ khóa phù hợp. ';
+
                     result.innerHTML = `<p class="text-center font-medium">${message}</p>`;
                     result.classList.remove('hidden');
                 }
+
             });
 
             // Station 4 drag and drop
