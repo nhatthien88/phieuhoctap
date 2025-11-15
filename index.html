@@ -560,7 +560,7 @@
             <p class="mb-6 text-lg">🌺 Nhấn thẻ để xoay sang mặt đúng. Khi đủ 3 thẻ cùng nhóm được xoay đúng sẽ hiện đáp
                 án chính xác: </p>
             <h3 id="station2-topic" class="text-center text-xl font-bold text-yellow-300 mb-4 drop-shadow">
-                Đấu Tranh Hội Nghị – Đấu Tranh Báo Chí – Đấu Tranh Nghị Trường
+                Đông Dương Đại Hội – Đấu Tranh Báo Chí – Đấu Tranh Nghị Trường
             </h3>
 
             <div class="mb-6">
@@ -726,6 +726,47 @@
                 </div>
             </div>
         </div>
+        <div class="text-center mt-10">
+            <button id="check-total"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-2xl shadow-lg text-lg">
+                🔐 KIỂM TRA ĐÁP ÁN TỔNG
+            </button>
+        </div>
+
+        <!-- Khu vực hiển thị đáp án -->
+        <div id="total-answer-box"
+            class="hidden mt-8 p-6 bg-white bg-opacity-30 backdrop-blur-lg rounded-2xl shadow-xl text-gray-800">
+
+            <h2 class="text-2xl font-bold text-center mb-4">📘 ĐÁP ÁN TỔNG HỢP</h2>
+
+            <div class="mb-4">
+                <h3 class="text-xl font-semibold text-purple-700">🌱 Trạm 1 – Nguyên nhân đúng</h3>
+                <ul class="list-disc ml-6 mt-2">
+                    <li>Mặt trận Nhân dân Pháp lên cầm quyền</li>
+                    <li>Đời sống nhân dân vô cùng cực khổ</li>
+                    <li>Đảng Cộng sản Đông Dương chuyển hướng đấu tranh dân chủ</li>
+                    <li>Mâu thuẫn dân tộc – giai cấp gay gắt</li>
+                </ul>
+            </div>
+
+            <div class="mb-4">
+                <h3 class="text-xl font-semibold text-green-700">🌻 Trạm 3 – Câu đúng chuẩn</h3>
+                <p class="mt-2 italic">
+                    “Phong trào dân chủ 1936–1939 diễn ra <b>công khai</b>, lực lượng
+                    <b>đông đảo</b>, và <b>mang lại nhiều kết quả thiết thực</b>.”
+                </p>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-semibold text-yellow-700">🌸 Trạm 4 – Ý nghĩa</h3>
+                <ul class="list-disc ml-6 mt-2">
+                    <li>Nhượng bộ dân sinh, dân chủ</li>
+                    <li>Diễn tập cho Cách mạng Tháng Tám</li>
+                    <li>Bài học kinh nghiệm đấu tranh</li>
+                </ul>
+            </div>
+        </div>
+
     </main>
     <script>
         let draggedElement = null;
@@ -1424,6 +1465,22 @@
                 });
             });
         });
+        // Nút kiểm tra đáp án tổng
+        document.getElementById("check-total").addEventListener("click", function () {
+            const pw = prompt("🔐 Nhập mật khẩu để xem đáp án tổng:");
+
+            if (pw === "1936 - 1939") {
+                document.getElementById("total-answer-box").classList.remove("hidden");
+
+                // Hiệu ứng mở ra đẹp mắt
+                document.getElementById("total-answer-box").classList.add("celebration");
+
+                alert("✅ Mật khẩu chính xác! Đáp án đã được mở khóa.");
+            } else if (pw !== null) {
+                alert("❌ Sai mật khẩu. Không thể mở đáp án.");
+            }
+        });
+
     </script>
     <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'99eda93f84270425',t:'MTc2MzE5ODMwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
 </body>
